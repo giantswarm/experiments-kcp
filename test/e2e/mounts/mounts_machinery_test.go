@@ -205,5 +205,5 @@ func TestMountsMachinery(t *testing.T) {
 
 	// Workspace access should not with denied.
 	_, err = kcpClusterClient.Cluster(mountPath).ApisV1alpha1().APIExports().List(ctx, metav1.ListOptions{})
-	require.Error(t, err)
+	require.ErrorContains(t, err, "unable to handle the request")
 }
