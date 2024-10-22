@@ -63,9 +63,9 @@ func New(rewriters []PathRewriter) *State {
 		// This should be simplified once we promote this to workspace structure.
 		shardClusterWorkspaceMountAnnotation: map[string]map[logicalcluster.Name]map[string]string{},
 
-		// shardCLusterWorkspaceNameErrorCode is a map of shar,logical cluster, workspace to error code when we want to return an error code
+		// shardClusterWorkspaceNameErrorCode is a map of shar,logical cluster, workspace to error code when we want to return an error code
 		// instead of a URL.
-		shardCLusterWorkspaceNameErrorCode: map[string]map[logicalcluster.Name]map[string]int{},
+		shardClusterWorkspaceNameErrorCode: map[string]map[logicalcluster.Name]map[string]int{},
 	}
 }
 
@@ -84,7 +84,7 @@ type State struct {
 	// Experimental feature: allow mounts to be used with Workspaces
 	shardClusterWorkspaceMountAnnotation map[string]map[logicalcluster.Name]map[string]string // (shard name, logical cluster, workspace name) -> mount object string
 
-	shardCLusterWorkspaceNameErrorCode map[string]map[logicalcluster.Name]map[string]int // (shard name, logical cluster, workspace name) -> error code
+	shardClusterWorkspaceNameErrorCode map[string]map[logicalcluster.Name]map[string]int // (shard name, logical cluster, workspace name) -> error code
 }
 
 func (c *State) UpsertWorkspace(shard string, ws *tenancyv1alpha1.Workspace) {
@@ -100,18 +100,18 @@ func (c *State) UpsertWorkspace(shard string, ws *tenancyv1alpha1.Workspace) {
 	// If the workspace is unavailable, we set custom error code for it. And add it to the index as normal.
 	// TODO(mjudeikis): Once we have one more case - move to a separate function.
 	if ws.Status.Phase == corev1alpha1.LogicalClusterPhaseUnavailable {
-		if c.shardCLusterWorkspaceNameErrorCode[shard] == nil {
-			c.shardCLusterWorkspaceNameErrorCode[shard] = map[logicalcluster.Name]map[string]int{}
+		if c.shardClusterWorkspaceNameErrorCode[shard] == nil {
+			c.shardClusterWorkspaceNameErrorCode[shard] = map[logicalcluster.Name]map[string]int{}
 		}
-		if c.shardCLusterWorkspaceNameErrorCode[shard][logicalcluster.Name(ws.Spec.Cluster)] == nil {
-			c.shardCLusterWorkspaceNameErrorCode[shard][logicalcluster.Name(ws.Spec.Cluster)] = map[string]int{}
+		if c.shardClusterWorkspaceNameErrorCode[shard][logicalcluster.Name(ws.Spec.Cluster)] == nil {
+			c.shardClusterWorkspaceNameErrorCode[shard][logicalcluster.Name(ws.Spec.Cluster)] = map[string]int{}
 		}
 		// Unavailable workspaces should return 503
-		c.shardCLusterWorkspaceNameErrorCode[shard][logicalcluster.Name(ws.Spec.Cluster)][ws.Name] = 503
+		c.shardClusterWorkspaceNameErrorCode[shard][logicalcluster.Name(ws.Spec.Cluster)][ws.Name] = 503
 	} else {
-		delete(c.shardCLusterWorkspaceNameErrorCode[shard][logicalcluster.Name(ws.Spec.Cluster)], ws.Name)
-		if len(c.shardCLusterWorkspaceNameErrorCode[shard][logicalcluster.Name(ws.Spec.Cluster)]) == 0 {
-			delete(c.shardCLusterWorkspaceNameErrorCode[shard], logicalcluster.Name(ws.Spec.Cluster))
+		delete(c.shardClusterWorkspaceNameErrorCode[shard][logicalcluster.Name(ws.Spec.Cluster)], ws.Name)
+		if len(c.shardClusterWorkspaceNameErrorCode[shard][logicalcluster.Name(ws.Spec.Cluster)]) == 0 {
+			delete(c.shardClusterWorkspaceNameErrorCode[shard], logicalcluster.Name(ws.Spec.Cluster))
 		}
 	}
 
@@ -181,9 +181,9 @@ func (c *State) DeleteWorkspace(shard string, ws *tenancyv1alpha1.Workspace) {
 			delete(c.shardClusterWorkspaceMountAnnotation[shard], clusterName)
 		}
 	}
-	delete(c.shardCLusterWorkspaceNameErrorCode[shard][clusterName], ws.Name)
-	if len(c.shardCLusterWorkspaceNameErrorCode[shard][clusterName]) == 0 {
-		delete(c.shardCLusterWorkspaceNameErrorCode[shard], clusterName)
+	delete(c.shardClusterWorkspaceNameErrorCode[shard][clusterName], ws.Name)
+	if len(c.shardClusterWorkspaceNameErrorCode[shard][clusterName]) == 0 {
+		delete(c.shardClusterWorkspaceNameErrorCode[shard], clusterName)
 	}
 }
 
@@ -242,7 +242,7 @@ func (c *State) DeleteShard(shardName string) {
 	delete(c.shardBaseURLs, shardName)
 	delete(c.shardWorkspaceName, shardName)
 	delete(c.shardClusterParentCluster, shardName)
-	delete(c.shardCLusterWorkspaceNameErrorCode, shardName)
+	delete(c.shardClusterWorkspaceNameErrorCode, shardName)
 }
 
 func (c *State) Lookup(path logicalcluster.Path) (Result, bool) {
@@ -294,7 +294,7 @@ func (c *State) Lookup(path logicalcluster.Path) (Result, bool) {
 		if !found {
 			return Result{}, false
 		}
-		ec, found := c.shardCLusterWorkspaceNameErrorCode[shard][cluster][s]
+		ec, found := c.shardClusterWorkspaceNameErrorCode[shard][cluster][s]
 		if found {
 			errorCode = ec
 		}
