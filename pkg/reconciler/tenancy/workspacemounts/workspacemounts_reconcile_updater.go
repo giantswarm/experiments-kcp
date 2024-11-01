@@ -112,7 +112,7 @@ func (r *workspaceStatusUpdater) reconcile(ctx context.Context, workspace *tenan
 			return reconcileStatusContinue, nil
 		default:
 			msg := fmt.Sprintf("Mount is not reporting ready. See %s %s status for more details", obj.GroupVersionKind().Kind, obj.GetName())
-			conditions.MarkFalse(workspace, tenancyv1alpha1.MountConditionReady, tenancyv1alpha1.MountReasonNotReady, conditionsv1alpha1.ConditionSeverityError, msg)
+			conditions.MarkFalse(workspace, tenancyv1alpha1.MountConditionReady, "Mount is not reporting ready.", conditionsv1alpha1.ConditionSeverityError, msg)
 		}
 	}
 
