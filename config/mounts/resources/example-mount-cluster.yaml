@@ -7,4 +7,4 @@ metadata:
     experimental.tenancy.kcp.io/is-mount: "true"
 spec:
   mode: Delegated
-  secretString: ""
+  secretString: "H3Bq0npaUa0u2dn1"
