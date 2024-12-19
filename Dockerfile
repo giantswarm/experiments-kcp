@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # Build the binary
-FROM --platform=${BUILDPLATFORM} docker.io/golang:1.22.7 AS builder
+FROM --platform=${BUILDPLATFORM} docker.io/golang:1.23.2 AS builder
 WORKDIR /workspace
 
 # Install dependencies.
@@ -40,7 +40,7 @@ RUN wget "https://dl.k8s.io/release/$(go list -m -json k8s.io/kubernetes | jq -r
 # Cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
 RUN --mount=type=cache,target=/go/pkg/mod \
-    go mod download
+  go mod download
 
 # Copy the sources
 COPY ./ ./
@@ -49,8 +49,13 @@ ARG TARGETOS
 ARG TARGETARCH
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
-    --mount=type=cache,target=/go/pkg/mod \
-    make OS=${TARGETOS} ARCH=${TARGETARCH}
+  --mount=type=cache,target=/go/pkg/mod \
+  make OS=${TARGETOS} ARCH=${TARGETARCH}
+
+RUN  --mount=type=cache,target=/root/.cache/go-build \
+  --mount=type=cache,target=/go/pkg/mod \
+  cd contrib/mounts-vw && make OS=${TARGETOS} ARCH=${TARGETARCH} && \
+  cp bin/virtual-workspaces ../../bin/virtual-workspaces
 
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details

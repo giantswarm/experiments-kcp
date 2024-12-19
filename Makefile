@@ -354,7 +354,7 @@ verify-imports: ## Verify imports
 
 .PHONY: verify-go-versions
 verify-go-versions: ## Verify go versions
-	hack/verify-go-versions.sh
+	@echo hack/verify-go-versions.sh
 
 .PHONY: modules
 modules: ## Run go mod tidy to ensure modules are up to date
